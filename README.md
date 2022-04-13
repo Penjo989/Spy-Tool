@@ -28,26 +28,28 @@ A network tool for performing simple second layer attacks with a simple gui.
 ## Introduction
 ### How this project came to be
 
-When I first started this project, my goal was to make a graphical network tool that would allow you to initiate a basic second-layer attack(for example Arp poisoning) over the internet by controlling a “spy” computer in the desired network. When I finished my first version of my project that could do all that I felt like the project didn’t have much use and I decided to expand it by turning it into a tool that can perform an entire attack with a simple gui/ui. I started reading about the wpa/wpa2 protocols and about their vulnerabilities and I decided to implement into my tool an automatic wpa2-psk brute-force attack. 
+When I first started this project, my goal was to make a graphical network tool that would allow it's user to initiate a basic second-layer attack(for example Arp poisoning) over the internet by controlling a “spy” computer in the desired network. When I finished my first version of my project that could do all that I felt like the project didn’t have much use and I decided to expand it by turning it into a tool that can perform an entire attack with a simple gui/ui. I started reading about the wpa/wpa2 protocols and about their vulnerabilities and I decided to implement into my tool an automatic wpa2-psk brute-force attack. 
 After writing code that could brute force a wpa2-psk secured network I felt that If I had added only this feature to my project it will not be able to perform a full attack. When I was coding the brute force attack’s code, I came across a Linux tool named tmux and I realized that if I could make my program open a tmux tab and capture the output of it without stopping my main code I could essentially make a synthetic shell and so I added that to my project too.
 
 ### The spy, the HQ and the communicator
 The final project consists of 3 parts:
 - the spy – which is the program ran on the computer that is connected(or close by) to the desired local network.
-- the communicator – which is the server that the spy connects to and sends and receives it’s information and commands(the communicator is essential because of port forwarding) 
+- the communicator – which is the server that the spy and HQ connect to and send and receive their information and commands(the communicator is essential because of port forwarding) 
 - the HQ – which is the program that the user runs on his pc and controls/monitors the attack.
 
 ### What does the tool do
-When the spy is first executed it will ask the user on which interface he would like to operate, if the given interface is not connected to the internet the program will offer him to brute-force the psk of the network of his choice using a dictionary of his choice. After connecting the spy to the internet, the user will connect to the desired communicator. The user could then launch the hq on his PC, connect to the same communicator and communicate with the spy with an encryption protocol similar to the wpa2-psk protocol, the user will be able to operate a shell on the spy, scan the spy’s network and perform Arp poisoning and mitm attacks with a simple gui.
+When the spy is first executed it will ask the user on which interface he would like to operate, if the given interface is not connected to the internet the program will offer him to brute-force the psk of the network that he wants to hack into using a dictionary of his choice. After connecting the spy to the internet, the user will connect to the desired communicator. The user could then launch the hq on his PC, connect to the same communicator and communicate with the spy with an encryption protocol similar to the wpa2-psk protocol, the user will be able to operate a shell on the spy, scan the spy’s network and perform Arp poisoning and mitm attacks with a simple gui.
 
 ## Features
 Note: the entire wpa2-psk brute-force attack, the Arp spoofs, the mitm attacks and the scans were written in python with scarce use of external tools.
 ### Perform a brute-force attack on a wpa2-psk secured wireless network
 
 When the spy is given a interface it checks if it’s connected to the internet by sending a ping to a chosen address (defaulted to google.com) and checks if there is a response, after checking the connection, if the spy isn’t connected and the user wants to brute force an access point’s psk the program starts an attack made up of 4 parts:
-- The spy enters monitor mode using air-crack, starts sniffing for beacons (using scapy) of the given ssid and extracts the bssid of the AP and simultaneously starts switching channels.
+
+
+1 .The spy enters monitor mode using aircrack-ng, starts sniffing for beacons (using scapy) of the given ssid while simultaneously switching channels Until finally, it extracts the bssid of the AP.
 ** **
-The function that handles a sniffed packet:
+The function that handles a sniffed packet (returns True if a sniffed packet is a beacon of the AP):
 ```python
 def packetHandler(self, pkt):
     if pkt.haslayer(Dot11):  # refers to 802.11 protocol
@@ -56,10 +58,10 @@ def packetHandler(self, pkt):
                 self.bssid = pkt.addr2
                 self.apChannel = self.freqToChannel(pkt[RadioTap].Channel)
                 self.isWPA2 = Dot11EltRSN in pkt
-                    return True
+                return True
         return False
 ```
-- The spy creates a thread sending de-auth frames to the stations connected to the AP and simultaneously sniffs  for a 4 way hand-shake made with the AP.
+2 . The spy creates a thread sending de-auth frames to the stations connected to the AP and simultaneously sniffs  for a 4 way hand-shake made with the AP.
 
 ```python
 def deAuthThread(self):
@@ -74,7 +76,7 @@ def deAuthThread(self):
             print(e)
 
 ```
-- After the four way handshake was captured the spy extracts the anonce, snonce, mic and macs of the station and the AP(although it already knows the ap’s mac - bssid)
+3 .After the four way handshake was captured the spy extracts the anonce, snonce, mic and macs of the station and the AP(although it already knows the ap’s mac - bssid)
 
 ```python
 def getNonce(self, pkt):
@@ -86,7 +88,7 @@ def getMic(self, pkt):
 ```
 
 
-- Finally the spy starts going over a dictionary and for each psk it does the following – turns the psk into a pmk using the pbkdf2 function and the ssid as salt,  turns the pmk into the ptk , generates the mic from the snonce and compares the generated mic to the sniffed mic.
+5 . Finally the spy starts going over a dictionary and for each psk it does the following – turns the psk into a pmk using the pbkdf2 function and the ssid as salt,  turns the pmk into the ptk , generates the mic from the snonce and compares the generated mic to the sniffed mic.
 
 ```python 
 def calcPMK(self, PSK):
@@ -112,12 +114,12 @@ def calcPTK(self, PMK, data):
 When I ran this attack on my laptop it went over about `300` passwords a second.
 
 ### Connect multiple spies to a single communicator 
-A single communicator can handle multiple spies conecting to it and allow a HQ to link to them seemlessly
+A single communicator can handle multiple spies conecting to it and allow a HQ to link to them seemlessly.
 ![ezgif-3-85636aff16](https://user-images.githubusercontent.com/53350057/163164751-6544daea-d6c9-4a59-b15b-89aa76e30fa3.gif)
 
 ### Command a spy to start an arp poisoning attack between any 2 stations
-After connecting to the internet the spy opens a thread for Arp poisoning that is given a set of `station links`  to spoof and sends fake Arp answers for each link (with a default interval of 1 second).
-When a HQ links to a spy he can send commands to the spy to add or remove a station link from the arp poisoning thread.
+After connecting to the internet the spy opens a thread for arp poisoning that is given a set of `station links`  to spoof and sends fake arp answers for each link (with a default interval of 1 second between every fake arp answer).
+When a HQ is controlling a spy he can send commands to the spy to add or remove a station link from the arp poisoning thread.
 
 ![ezgif-3-09379ba2af](https://user-images.githubusercontent.com/53350057/163182114-7a4d3c1b-ca07-4369-a502-65493b27aed5.gif)
 
@@ -129,14 +131,14 @@ itself.
 
 ### Command a spy to start capturing the traffic between any 2 stations
 Simmilar to the arp posoning thread, after connecting to the internet the spy opens a thread for capturing traffic between 2 stations - that is given a set of `station links` aswell.
-When a HQ links to a spy he can send commands to the spy to add or remove a station link from the mitm thread.
+When a HQ is controlling a spy he can send commands to the spy to add or remove a station link from the mitm thread.
 
 ![ezgif-3-e62de6df3c](https://user-images.githubusercontent.com/53350057/163183520-193b7eb3-56a9-4bd3-9b05-58204dfece09.gif)
 
 The red line between 2 stations indicates that the spy is capturing the traffic between them.
 
 ### Command a spy to scan the local network it's in
-The spy has a scanner object that can perform a quick arp scan on it's local network, when a HQ is controlling a spy it has a scan button that can tell the spy to perform a new scan.
+The spy has a scanner object that can perform a quick arp scan on it's local network. When a HQ is controlling a spy it has a scan button that can tell the spy to perform a new scan.
 
 ![ezgif-3-8d6799b0a9](https://user-images.githubusercontent.com/53350057/163190091-cbed68f3-72c7-4a7d-bfae-3514bced922e.gif)
 
@@ -151,7 +153,7 @@ As i've explained in the introduction i used tmux and script to open a controlab
 The data sent between a spy an HQ and a communicator is encrypted using a protocol simmilar to the wpa2-psk protocol.
 
 ### The Authentication Proccess
-When a spy or an HQ wants to conect to a communicator they send the communicator their name(which is entered by the user). After the communicator receives the name he generates their key from the password of the communicator using the pbkdf2 function with 100000 iterations and the name as salt, he then sends a random number 32-bit  integer to the hq/spy. On the other side the hq/spy receives the number and sends back the same number but encrypted using their key, the communicator checks if the encrypted number that he received is legit by decrypting it and if it is - they start to communicate using that key.
+When a spy or an HQ wants to conect to a communicator they send the communicator their name(which is entered by the user). After the communicator receives the name he generates their key from the password of the communicator using the pbkdf2 function with 100000 iterations and the name as salt, he then sends a random  32-bit  integer to the hq/spy. On the other side the hq/spy receives the number, generates the key using the password that the user enters and sends back the same number but encrypted using their key. The communicator then checks if the encrypted number that he received is legit by decrypting it and if it is - they start to communicate using that key.
 
 
 The function that the key is generated with:
@@ -188,10 +190,10 @@ STRSCN#192.168.0.1~ec:08:6b:c4:1e:86#192.168.0.105~40:8d:5c:70:a5:0f#192.168.0.1
 After playing around for a couple of weeks with the wpa2-psk protocol and some second layer vulnerabilities i've come to an understating that wpa/wpa2-psk protected networks can be very insecure (especially if they use weak passwords) and that i should probably use a vpn.
 ### Known issues
 1. After disconnecting from a communicator the hq fails to reconnect to it’s spies.
-2. Due to frequent de-auth frames being sent the spy accidently disconnects stations from aps while they are authenticating which sometimes causes the handshake that is captured to be made up of 2 different sessions(not sure if this is correct but if it is it'll be quite easy to fix).
+2. Due to frequent de-auth frames being sent the spy accidently disconnects stations from aps while they are authenticating which sometimes causes the handshake that is captured to be made up of 2 different sessions which eventually ruins the hole attack(not sure if this is correct but if it is it'll be quite easy to fix).
 3. Sometimes the spy is disconnected from the communicator without getting notified.
 4. Sometimes the spy scans the same station twice as if it's 2 stations.
-5. In rare occasions the spy may not enter monitor mode properly when trying to sniff but im pretty sure this is a problem with air-crack and not my code.
+5. In rare occasions the spy may not enter monitor mode properly when trying to sniff but im pretty sure this is a problem with aircrack-ng and not my code.
 
 
 ### Future plans
@@ -204,4 +206,4 @@ After playing around for a couple of weeks with the wpa2-psk protocol and some s
 7.	Enable more dynamic Arp spoofs.
 8.	Allow the user to choose a subnet mask.
 9.	Improve gui.
-10. Use inheritence and other OOP methods more often in my code. 
+10. Use inheritence and other OOP ideas more often in my code. 
