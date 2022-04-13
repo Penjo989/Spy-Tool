@@ -24,6 +24,8 @@ A network tool for performing simple second layer attacks with a simple gui.
     - [Known issues](#issue)
 
     - [Future Plans](#future)
+    
+- [Links](#links)
 
 ## <a name = "intro"></a>Introduction
 ### <a name = "how"></a>How this project came to be
@@ -207,3 +209,11 @@ After playing around for a couple of weeks with the wpa2-psk protocol and some s
 8.	Allow the user to choose a subnet mask.
 9.	Improve gui.
 10. Use inheritence and other OOP ideas more often in my code. 
+
+
+## <a name = "links"></a>Links
+[Youtube Video](#https://www.youtube.com/watch?v=w2E27dGDpD4)
+
+[Spy Drawio Plannings(Old)](#https://drive.google.com/file/d/1oEchmTxtnlKGkk_lMfPOOp1bDhPhMUl3/view?usp=sharing)
+
+[Linkedin](https://www.linkedin.com/in/eyal-angel-480220227)
