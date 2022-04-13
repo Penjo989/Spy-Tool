@@ -212,8 +212,9 @@ After playing around for a couple of weeks with the wpa2-psk protocol and some s
 
 
 ## <a name = "links"></a>Links
-[Youtube Video](#https://www.youtube.com/watch?v=w2E27dGDpD4)
+[Youtube Video](https://www.youtube.com/watch?v=w2E27dGDpD4)
 
-[Spy Drawio Plannings(Old)](#https://drive.google.com/file/d/1oEchmTxtnlKGkk_lMfPOOp1bDhPhMUl3/view?usp=sharing)
+[Spy Drawio Plannings(Old)1](https://drive.google.com/file/d/1oEchmTxtnlKGkk_lMfPOOp1bDhPhMUl3/view?usp=sharing)
+[Spy Drawio Plannnigs(Old)2](https://drive.google.com/file/d/1vN4r7Zd1qcYQUaUZPZKUfmeC_NPpnezw/view?usp=sharing)
 
 [Linkedin](https://www.linkedin.com/in/eyal-angel-480220227)
