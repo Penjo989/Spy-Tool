@@ -17,12 +17,13 @@ A network tool for performing simple second layer attacks with a simple gui.
     - Control a spy's shell from the hq's gui
     
 - Security And Encryption
-    - The Data Transfer Protocol
     - The Authentication Proccess
+    - The Data Transfer Protocol
 
-- Known Issues
+- Summary
+    - Known issues
 
-- Future Plans
+    - Future Plans
 
 ## Introduction
 ### How this project came to be
@@ -141,23 +142,66 @@ The spy has a scanner object that can perform a quick arp scan on it's local net
 
 ### Control a spy's shell from the hq's gui
 
+As i've explained in the introduction i used tmux and script to open a controlable 'shell' on the spy. When the HQ is linked to a spy the spy sends him the tmux shell's output and the HQ starts printing it in the python terminal, in addition the HQ can write in the terminal commands that when he presses enter are sent to the spy which then executes them in the tmux winodow.
 
-The spy and the HQ are mostly graphics and socket networking therefore I will only explain how the encryption protocol (which is very similar to the wpa2-psk protocol) works. 
-After a spy/socket connects to the communicator’s socket, they send the communicator their name(which is entered by the user). After the communicator receives the name he generates their key from the password of the communicator using the pbkdf2 function with 100000 iterations and the name as salt, he then sends a random number 32-bit  integer to the hq/spy. On the other side the hq/spy receives the number and sends back the same number but encrypted using their key, the communicator checks if the encrypted number that he received is legit by decrypting it, If it is - they start to communicate using that key.
+![ezgif-3-024c12139b](https://user-images.githubusercontent.com/53350057/163196027-1c7ee20b-2a6d-431f-8766-b65d38ba2f63.gif)
 
-Known issues:
-1.	After disconnecting from a communicator the hq fails to connect to it’s spies
-2.	Due to frequent de-auth frames being sent the spy accidently disconnects stations from aps while they are authenticating which sometimes causes the handshake that is captured to be made up of 2 different sessions(not sure if this is correct).
-3.	Sometimes the spy is disconnected from the communicator without getting notified.
+## Security and Ecryption
+
+The data sent between a spy an HQ and a communicator is encrypted using a protocol simmilar to the wpa2-psk protocol.
+
+### The Authentication Proccess
+When a spy or an HQ wants to conect to a communicator they send the communicator their name(which is entered by the user). After the communicator receives the name he generates their key from the password of the communicator using the pbkdf2 function with 100000 iterations and the name as salt, he then sends a random number 32-bit  integer to the hq/spy. On the other side the hq/spy receives the number and sends back the same number but encrypted using their key, the communicator checks if the encrypted number that he received is legit by decrypting it and if it is - they start to communicate using that key.
 
 
-Future plans: 
-1.	Add a function that will distinguish between wired and wireless interfaces
-2.	Add a function that detects the os type and version
-3.	Add an organized ui class to the spy
-4.	Add a data collection class
-5.	Replace the synthetic shell with an actual ssh tunnel
-6.	Rewrite the networking
-7.	Enable more dynamic Arp spoofs
-8.	Allow the user to choose a subnet mask
-9.	Improve gui
+The function that the key is generated with:
+```python
+def genKey(self, passPhrase, salt):
+    passPhrase = passPhrase.encode()
+    salt = salt.encode()
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000, backend=default_backend())
+    key = base64.urlsafe_b64encode(kdf.derive(passPhrase))
+    return key
+
+
+```
+### The data transfer protocol
+In order to transfer data between spies, hqs and communicators I've written a simple protocol that tells each part of the project how to send and receive data using string constants.
+
+Here are some of the constants i've declared and also an example of a message:
+
+```python
+self.START = "STR"
+self.END = "END"
+self.RAW = "RAW"
+self.SECTION = "SCT"
+self.DIVIDER = "#"
+self.LINK = "~"
+self.SCAN = "SCN"
+self.SPOOFED = "SPF"
+self.MITM = "MTM"
+```
+```
+STRSCN#192.168.0.1~ec:08:6b:c4:1e:86#192.168.0.105~40:8d:5c:70:a5:0f#192.168.0.109~74:da:38:1d:ef:e2#192.168.0.110~30:b5:c2:83:e3:f7#192.168.0.107~c8:28:32:2d:72:03#192.168.0.113~b4:2e:99:97:37:aeSCTSPFSCTMTMRAWEND
+```
+## Summary
+After playing around for a couple of weeks with the wpa2-psk protocol and some second layer vulnerabilities i've come to an understating that wpa/wpa2-psk protected networks can be very insecure (especially if they use weak passwords) and that i should probably use a vpn.
+### Known issues
+1. After disconnecting from a communicator the hq fails to reconnect to it’s spies.
+2. Due to frequent de-auth frames being sent the spy accidently disconnects stations from aps while they are authenticating which sometimes causes the handshake that is captured to be made up of 2 different sessions(not sure if this is correct but if it is it'll be quite easy to fix).
+3. Sometimes the spy is disconnected from the communicator without getting notified.
+4. Sometimes the spy scans the same station twice as if it's 2 stations.
+5. In rare occasions the spy may not enter monitor mode properly when trying to sniff but im pretty sure this is a problem with air-crack and not my code.
+
+
+### Future plans
+1.	Add a function that will distinguish between wired and wireless interfaces.
+2.	Add a function that detects the os type and version.
+3.	Add an organized ui class to the spy.
+4.	Add a data collection class.
+5.	Replace the synthetic shell with an actual ssh tunnel.
+6.	Rewrite the networking.
+7.	Enable more dynamic Arp spoofs.
+8.	Allow the user to choose a subnet mask.
+9.	Improve gui.
+10. Use inheritence and other OOP methods more often in my code. 
