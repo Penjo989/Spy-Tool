@@ -90,7 +90,7 @@ def getMic(self, pkt):
 ```
 
 
-5 . Finally the spy starts going over a dictionary and for each psk it does the following – turns the psk into a pmk using the pbkdf2 function and the ssid as salt,  turns the pmk into the ptk , generates the mic from the snonce and compares the generated mic to the sniffed mic.
+4 . Finally the spy starts going over a dictionary and for each psk it does the following – turns the psk into a pmk using the pbkdf2 function and the ssid as salt,  turns the pmk into the ptk , generates the mic from the snonce and compares the generated mic to the sniffed mic.
 
 ```python 
 def calcPMK(self, PSK):
