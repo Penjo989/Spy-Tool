@@ -3,7 +3,7 @@ from ProgramManager import *
 
 
 def main():
-    pg = ProgramManager("192.168.0.113")
+    pg = ProgramManager("localhost")
     pg.main()
 
 
