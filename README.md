@@ -150,7 +150,7 @@ As i've explained in the *[introduction](#intro)* i used tmux and script to open
 
 ![ezgif-3-024c12139b](https://user-images.githubusercontent.com/53350057/163196027-1c7ee20b-2a6d-431f-8766-b65d38ba2f63.gif)
 
-## <a name = "security"></a>Security and Eמcryption
+## <a name = "security"></a>Security and Encryption
 
 The data sent between a spy an HQ and a communicator is encrypted using a protocol simmilar to the wpa2-psk protocol.
 
